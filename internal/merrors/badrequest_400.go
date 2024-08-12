@@ -9,15 +9,15 @@ import (
 )
 
 /* -------------------------------------------------------------------------- */
-/*                            VALIDATION ERROR 422                            */
+/*                            Bad Request ERROR 400                            */
 /* -------------------------------------------------------------------------- */
-func Validation(ctx *gin.Context, err string) {
+func BadRequest(ctx *gin.Context, err string) {
 	var res utils.BaseResponse
 	var smerror utils.Error
-	errorCode := http.StatusUnprocessableEntity
+	errorCode := http.StatusBadRequest
 
 	smerror.Code = errorCode
-	smerror.Type = errorType.validation
+	smerror.Type = errorType.BadRequest
 	smerror.Message = err
 
 	res.Error = &smerror

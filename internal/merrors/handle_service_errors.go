@@ -28,7 +28,7 @@ func HandleServiceCodes(ctx *gin.Context, baseRes utils.BaseResponse) {
 		}
 	case http.StatusUnprocessableEntity:
 		{
-			Validation(ctx, baseRes.Message)
+			BadRequest(ctx, baseRes.Message)
 		}
 	case 550:
 		{

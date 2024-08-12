@@ -56,30 +56,17 @@ db/migrations/new:
 db/migrations/up:
 	@echo 'Running Up migrations...'
 
-	migrate -path=./internal/database/migrations -database postgres://postgres:root@localhost:5432/spotifycollab?sslmode=disable up
+	migrate -path=./internal/database/migrations -database postgres://postgres:root@localhost:5432/motorq?sslmode=disable up
 
 	
 ## db/migrations/down: apply all database down migrations
 .PHONY: db/migrations/down
 db/migrations/down:
 	@echo 'Running Down migrations...'
-	migrate -path=./internal/database/migrations -database postgres://postgres:root@localhost:5432/spotifycollab?sslmode=disable down
+	migrate -path=./internal/database/migrations -database postgres://postgres:root@localhost:5432/motorq?sslmode=disable down
+
+.PHONY: db/migrations/reload
+db/migrations/reload: db/migrations/down db/migrations/up
 
 
 .PHONY: all build run test clean
-
-
-# # @if command -v air > /dev/null; then \
-	#     air; \
-	#     echo "Watching...";\
-	# else \
-	#     read -p "Go's 'air' is not installed on your machine. Do you want to install it? [Y/n] " choice; \
-	#     if [ "$$choice" != "n" ] && [ "$$choice" != "N" ]; then \
-	#         go install github.com/air-verse/air@latest; \
-	#         air; \
-	#         echo "Watching...";\
-	#     else \
-	#         echo "You chose not to install air. Exiting..."; \
-	#         exit 1; \
-	#     fi; \
-	# fi

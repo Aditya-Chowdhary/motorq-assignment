@@ -1,7 +1,7 @@
 package merrors
 
 var errorType = struct {
-	validation         string
+	BadRequest         string
 	server             string
 	Unauthorized       string
 	conflict           string
@@ -10,7 +10,7 @@ var errorType = struct {
 	Downstream         string
 	NotFound           string
 }{
-	validation:         "validation",
+	BadRequest:         "bad request",
 	server:             "server",
 	Unauthorized:       "unauthorized",
 	conflict:           "conflict",

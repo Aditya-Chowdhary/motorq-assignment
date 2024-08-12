@@ -10,13 +10,17 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/joho/godotenv/autoload"
 
+	"motorq-assignment/internal/controllers/organisations"
+	"motorq-assignment/internal/controllers/vehicles"
 	"motorq-assignment/internal/database"
 )
 
 type Server struct {
 	port int
 
-	db *pgxpool.Pool
+	db             *pgxpool.Pool
+	OrgHandler     *organisations.OrgHandler
+	VehicleHandler *vehicles.VehicleHandler
 }
 
 func NewServer() *http.Server {
@@ -25,6 +29,9 @@ func NewServer() *http.Server {
 	NewServer := &Server{
 		port: port,
 		db:   db,
+
+		OrgHandler:     organisations.Handler(db),
+		VehicleHandler: vehicles.Handler(db),
 	}
 
 	// Declare Server config
