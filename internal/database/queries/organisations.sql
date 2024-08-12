@@ -2,6 +2,11 @@
 SELECT *
 FROM organisations;
 
+-- name: GetAllOrganisationsWithSetBy :many
+select o.org_id, o."name", o.account, o.website, o.fuel_policy, o1."name" as fuel_set_by, o.speed_policy, o2."name" as speed_set_by, o.parent_id from organisations o
+inner join organisations o1 on o.fuel_set_by = o1.org_id 
+inner join organisations o2 on o.speed_set_by = o2.org_id;
+
 -- name: GetOrganisation :one
 SELECT *
 FROM organisations

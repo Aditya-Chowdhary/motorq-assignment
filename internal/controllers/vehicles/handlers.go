@@ -6,19 +6,25 @@ import (
 	"motorq-assignment/internal/merrors"
 	"motorq-assignment/internal/utils"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/time/rate"
 )
 
 type VehicleHandler struct {
-	db *pgxpool.Pool
+	db          *pgxpool.Pool
+	Client      *http.Client
+	RateLimiter *rate.Limiter
 }
 
 func Handler(db *pgxpool.Pool) *VehicleHandler {
 	return &VehicleHandler{
-		db: db,
+		db:          db,
+		Client:      &http.Client{Timeout: 30 * time.Second},
+		RateLimiter: rate.NewLimiter(rate.Every(time.Minute/5), 5),
 	}
 }
 
@@ -33,7 +39,7 @@ func (v *VehicleHandler) DecodeVehicle(c *gin.Context) {
 		return
 	}
 
-	result, err := callNHSTA(input.VIN)
+	result, err := v.callNHSTA(input.VIN)
 	if errors.Is(err, ErrNoCar) {
 		merrors.NotFound(c, ErrNoCar.Error())
 		return
@@ -85,7 +91,7 @@ func (v *VehicleHandler) CreateVehicle(c *gin.Context) {
 		OrgID int64  `json:"org" binding:"required"`
 	}
 
-	result, err := callNHSTA(input.VIN)
+	result, err := v.callNHSTA(input.VIN)
 	if errors.Is(err, ErrNoCar) {
 		merrors.NotFound(c, ErrNoCar.Error())
 		return

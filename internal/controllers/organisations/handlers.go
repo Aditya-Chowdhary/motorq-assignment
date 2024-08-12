@@ -22,9 +22,9 @@ func Handler(db *pgxpool.Pool) *OrgHandler {
 	}
 }
 
-func (o *OrgHandler) GetOrganisation(c *gin.Context) {
+func (o *OrgHandler) GetAllOrganisations(c *gin.Context) {
 	q := database.New(o.db)
-	orgs, err := q.GetAllOrganisations(c)
+	orgs, err := q.GetAllOrganisationsWithSetBy(c)
 	if errors.Is(err, pgx.ErrNoRows) {
 		merrors.NotFound(c, "No Organisations found!")
 		return
@@ -171,6 +171,35 @@ func (o *OrgHandler) UpdateOrganisation(c *gin.Context) {
 		Success:    true,
 		Message:    "Organisation successfully updated",
 		Data:       gin.H{"org": org, "rows_updated": row},
+		StatusCode: http.StatusOK,
+	})
+}
+
+func (o *OrgHandler) GetOrganisation(c *gin.Context) {
+	var input struct {
+		OrgID int64 `uri:"id" binding:"required"`
+	}
+
+	err := c.BindUri(&input)
+	if err != nil {
+		merrors.BadRequest(c, err.Error())
+		return
+	}
+
+	q := database.New(o.db)
+	orgs, err := q.GetOrganisationWithChild(c, input.OrgID)
+	if errors.Is(err, pgx.ErrNoRows) {
+		merrors.NotFound(c, err.Error())
+		return
+	} else if err != nil {
+		merrors.InternalServer(c, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, utils.BaseResponse{
+		Success:    true,
+		Message:    "Organisations successfully retreived",
+		Data:       orgs,
 		StatusCode: http.StatusOK,
 	})
 }

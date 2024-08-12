@@ -122,6 +122,54 @@ func (q *Queries) GetAllOrganisations(ctx context.Context) ([]Organisation, erro
 	return items, nil
 }
 
+const getAllOrganisationsWithSetBy = `-- name: GetAllOrganisationsWithSetBy :many
+select o.org_id, o."name", o.account, o.website, o.fuel_policy, o1."name" as fuel_set_by, o.speed_policy, o2."name" as speed_set_by, o.parent_id from organisations o
+inner join organisations o1 on o.fuel_set_by = o1.org_id 
+inner join organisations o2 on o.speed_set_by = o2.org_id
+`
+
+type GetAllOrganisationsWithSetByRow struct {
+	OrgID       int64  `json:"org_id"`
+	Name        string `json:"name"`
+	Account     string `json:"account"`
+	Website     string `json:"website"`
+	FuelPolicy  int32  `json:"fuel_policy"`
+	FuelSetBy   string `json:"fuel_set_by"`
+	SpeedPolicy int32  `json:"speed_policy"`
+	SpeedSetBy  string `json:"speed_set_by"`
+	ParentID    *int64 `json:"parent_id"`
+}
+
+func (q *Queries) GetAllOrganisationsWithSetBy(ctx context.Context) ([]GetAllOrganisationsWithSetByRow, error) {
+	rows, err := q.db.Query(ctx, getAllOrganisationsWithSetBy)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetAllOrganisationsWithSetByRow
+	for rows.Next() {
+		var i GetAllOrganisationsWithSetByRow
+		if err := rows.Scan(
+			&i.OrgID,
+			&i.Name,
+			&i.Account,
+			&i.Website,
+			&i.FuelPolicy,
+			&i.FuelSetBy,
+			&i.SpeedPolicy,
+			&i.SpeedSetBy,
+			&i.ParentID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getOrganisation = `-- name: GetOrganisation :one
 SELECT org_id, name, account, website, fuel_policy, fuel_set_by, speed_policy, speed_set_by, parent_id
 FROM organisations

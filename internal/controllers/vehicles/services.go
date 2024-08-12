@@ -1,13 +1,13 @@
 package vehicles
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
-	"time"
 )
 
 type NHSTADetails struct {
@@ -27,13 +27,25 @@ type NHSTAResponse struct {
 	} `json:"Results"`
 }
 
-var Client = &http.Client{Timeout: 30 * time.Second}
 var ErrNoCar = errors.New("no car associated with the given VIN")
 
-func callNHSTA(vin string) (*NHSTADetails, error) {
+func (v *VehicleHandler) Do(url string) (*http.Response, error) {
+	ctx := context.Background()
+	err := v.RateLimiter.Wait(ctx)
+	if err != nil {
+		return nil, err
+	}
+	res, err := v.Client.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (v *VehicleHandler) callNHSTA(vin string) (*NHSTADetails, error) {
 	url := fmt.Sprintf("https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/%s?format=json", vin)
 
-	r, err := Client.Get(url)
+	r, err := v.Do(url)
 	if err != nil {
 		return nil, err
 	}

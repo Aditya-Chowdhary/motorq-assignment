@@ -10,13 +10,13 @@
 - [ ] Created At + Updated At
 - [ ] Bonus: Pagination for get orgs
 - [ ] Version for block conflicts
-- [ ] Bonus: Specific Organisation
+- [x] Bonus: Specific Organisation
 - [x] Check if updating something that doesnt exist??
 - [ ] Bonus: Add authentication to your APIs to ensure no one outside More Torque is using this.
 - [ ] Bonus: Rate limit all API’s so that they aren’t being misused by a rogue script!
 - [ ] Bonus: Implement caching in relevant places to save time and improve latency.
 - [ ] In get request - check if the speed/fuel is inherited from parent
-- [ ] Rate limit calling the NHSTA thing
+- [x] Rate limit calling the NHSTA thing
 
 
 

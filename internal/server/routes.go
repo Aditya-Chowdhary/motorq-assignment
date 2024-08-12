@@ -21,7 +21,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.GET("/vehicles/:vin", s.VehicleHandler.CreateVehicle)
 	r.POST("/vehicles", s.VehicleHandler.GetVehicle)
 
-	r.GET("/orgs", s.OrgHandler.GetOrganisation)
+	r.GET("/orgs", s.OrgHandler.GetAllOrganisations)
+	r.GET("/orgs/:id", s.OrgHandler.GetOrganisation)
 	r.POST("/orgs", s.OrgHandler.CreateOrgansation)
 	r.PATCH("/orgs", s.OrgHandler.UpdateOrganisation)
 
