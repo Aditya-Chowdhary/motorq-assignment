@@ -15,12 +15,21 @@ import (
 	"motorq-assignment/internal/database"
 )
 
+type config struct {
+	limiter struct{
+		rate int
+		burst int
+	}
+}
+
 type Server struct {
 	port int
 
 	db             *pgxpool.Pool
 	OrgHandler     *organisations.OrgHandler
 	VehicleHandler *vehicles.VehicleHandler
+
+	config
 }
 
 func NewServer() *http.Server {
@@ -32,6 +41,10 @@ func NewServer() *http.Server {
 
 		OrgHandler:     organisations.Handler(db),
 		VehicleHandler: vehicles.Handler(db),
+
+		config: config{
+			limiter: struct{rate int; burst int}{1, 2},
+		},
 	}
 
 	// Declare Server config

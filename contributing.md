@@ -13,10 +13,11 @@
 - [x] Bonus: Specific Organisation
 - [x] Check if updating something that doesnt exist??
 - [ ] Bonus: Add authentication to your APIs to ensure no one outside More Torque is using this.
-- [ ] Bonus: Rate limit all API’s so that they aren’t being misused by a rogue script!
+- [x] Bonus: Rate limit all API’s so that they aren’t being misused by a rogue script!
 - [ ] Bonus: Implement caching in relevant places to save time and improve latency.
-- [ ] In get request - check if the speed/fuel is inherited from parent
+- [x] In get request - check if the speed/fuel is inherited from parent
 - [x] Rate limit calling the NHSTA thing
+- [ ] If we want to update parent? Also, cycles?
 
 
 

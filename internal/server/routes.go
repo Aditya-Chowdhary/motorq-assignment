@@ -12,6 +12,7 @@ import (
 
 func (s *Server) RegisterRoutes() http.Handler {
 	r := gin.Default()
+	r.Use(s.rateLimit())
 
 	r.GET("/", s.HelloWorldHandler)
 

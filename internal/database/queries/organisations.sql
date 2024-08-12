@@ -1,6 +1,7 @@
 -- name: GetAllOrganisations :many
 SELECT *
-FROM organisations;
+FROM organisations
+ORDER BY org_id;
 
 -- name: GetAllOrganisationsWithSetBy :many
 select o.org_id, o."name", o.account, o.website, o.fuel_policy, o1."name" as fuel_set_by, o.speed_policy, o2."name" as speed_set_by, o.parent_id from organisations o
