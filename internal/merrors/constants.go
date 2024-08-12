@@ -9,6 +9,7 @@ var errorType = struct {
 	Forbidden          string
 	Downstream         string
 	NotFound           string
+	TooManyRequests    string
 }{
 	BadRequest:         "bad request",
 	server:             "server",
@@ -18,4 +19,5 @@ var errorType = struct {
 	Forbidden:          "forbidden",
 	Downstream:         "downstream",
 	NotFound:           "not found",
+	TooManyRequests: "too many requests",
 }

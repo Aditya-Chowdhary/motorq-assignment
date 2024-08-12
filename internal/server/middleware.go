@@ -50,7 +50,7 @@ func (s *Server) rateLimit() gin.HandlerFunc {
 		clients[ip].lastSeen = time.Now()
 		if !clients[ip].limiter.Allow() {
 			mu.Unlock()
-			merrors.ServiceUnavailable(c, "rate limit")
+			merrors.TooManyRequests(c, "rate limit")
 			return
 		}
 		mu.Unlock()
