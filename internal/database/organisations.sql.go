@@ -48,6 +48,45 @@ func (q *Queries) CreateOrganisation(ctx context.Context, arg CreateOrganisation
 	return i, err
 }
 
+const createOrganisationThroughParent = `-- name: CreateOrganisationThroughParent :one
+INSERT INTO organisations (name, account, website, fuel_policy, fuel_set_by, speed_policy, parent_id)
+Values ($1, $2, $3, $4, $5, $6, $5)
+RETURNING org_id, name, account, website, fuel_policy, fuel_set_by, speed_policy, speed_set_by, parent_id
+`
+
+type CreateOrganisationThroughParentParams struct {
+	Name        string `json:"name"`
+	Account     string `json:"account"`
+	Website     string `json:"website"`
+	FuelPolicy  int32  `json:"fuel_policy"`
+	ParentID    int64  `json:"parent_id"`
+	SpeedPolicy int32  `json:"speed_policy"`
+}
+
+func (q *Queries) CreateOrganisationThroughParent(ctx context.Context, arg CreateOrganisationThroughParentParams) (Organisation, error) {
+	row := q.db.QueryRow(ctx, createOrganisationThroughParent,
+		arg.Name,
+		arg.Account,
+		arg.Website,
+		arg.FuelPolicy,
+		arg.ParentID,
+		arg.SpeedPolicy,
+	)
+	var i Organisation
+	err := row.Scan(
+		&i.OrgID,
+		&i.Name,
+		&i.Account,
+		&i.Website,
+		&i.FuelPolicy,
+		&i.FuelSetBy,
+		&i.SpeedPolicy,
+		&i.SpeedSetBy,
+		&i.ParentID,
+	)
+	return i, err
+}
+
 const getAllOrganisations = `-- name: GetAllOrganisations :many
 SELECT org_id, name, account, website, fuel_policy, fuel_set_by, speed_policy, speed_set_by, parent_id
 FROM organisations
@@ -81,6 +120,113 @@ func (q *Queries) GetAllOrganisations(ctx context.Context) ([]Organisation, erro
 		return nil, err
 	}
 	return items, nil
+}
+
+const getOrganisation = `-- name: GetOrganisation :one
+SELECT org_id, name, account, website, fuel_policy, fuel_set_by, speed_policy, speed_set_by, parent_id
+FROM organisations
+WHERE org_id = $1
+`
+
+func (q *Queries) GetOrganisation(ctx context.Context, orgID int64) (Organisation, error) {
+	row := q.db.QueryRow(ctx, getOrganisation, orgID)
+	var i Organisation
+	err := row.Scan(
+		&i.OrgID,
+		&i.Name,
+		&i.Account,
+		&i.Website,
+		&i.FuelPolicy,
+		&i.FuelSetBy,
+		&i.SpeedPolicy,
+		&i.SpeedSetBy,
+		&i.ParentID,
+	)
+	return i, err
+}
+
+const getOrganisationWithChild = `-- name: GetOrganisationWithChild :many
+with recursive query_test
+as (
+	select org_id, "name", account, website, fuel_policy, fuel_set_by, speed_policy, speed_set_by, parent_id
+	from organisations o
+	where o.org_id = $1
+	union all 	
+	select o.org_id, o."name", o.account, o.website, o.fuel_policy, o.fuel_set_by, o.speed_policy, o.speed_set_by, o.parent_id 
+	from organisations o 
+	join query_test q on o.parent_id = q.org_id)
+select org_id, name, account, website, fuel_policy, fuel_set_by, speed_policy, speed_set_by, parent_id from query_test
+`
+
+type GetOrganisationWithChildRow struct {
+	OrgID       int64  `json:"org_id"`
+	Name        string `json:"name"`
+	Account     string `json:"account"`
+	Website     string `json:"website"`
+	FuelPolicy  int32  `json:"fuel_policy"`
+	FuelSetBy   int64  `json:"fuel_set_by"`
+	SpeedPolicy int32  `json:"speed_policy"`
+	SpeedSetBy  int64  `json:"speed_set_by"`
+	ParentID    *int64 `json:"parent_id"`
+}
+
+func (q *Queries) GetOrganisationWithChild(ctx context.Context, orgID int64) ([]GetOrganisationWithChildRow, error) {
+	rows, err := q.db.Query(ctx, getOrganisationWithChild, orgID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetOrganisationWithChildRow
+	for rows.Next() {
+		var i GetOrganisationWithChildRow
+		if err := rows.Scan(
+			&i.OrgID,
+			&i.Name,
+			&i.Account,
+			&i.Website,
+			&i.FuelPolicy,
+			&i.FuelSetBy,
+			&i.SpeedPolicy,
+			&i.SpeedSetBy,
+			&i.ParentID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateFuelPolicy = `-- name: UpdateFuelPolicy :execrows
+with recursive query_test
+as (
+	select org_id, "name", account, website, fuel_policy, fuel_set_by, speed_policy, speed_set_by, parent_id
+	from organisations o
+	where org_id = $2
+	union all 	
+	select o.org_id, o."name", o.account, o.website, o.fuel_policy, o.fuel_set_by, o.speed_policy, o.speed_set_by, o.parent_id 
+	from organisations o 
+	join query_test q on o.parent_id = q.org_id)
+update organisations 
+set fuel_policy = $1,
+fuel_set_by = $2
+where org_id in (select org_id from query_test)
+`
+
+type UpdateFuelPolicyParams struct {
+	FuelPolicy int32 `json:"fuel_policy"`
+	OrgID      int64 `json:"org_id"`
+}
+
+func (q *Queries) UpdateFuelPolicy(ctx context.Context, arg UpdateFuelPolicyParams) (int64, error) {
+	result, err := q.db.Exec(ctx, updateFuelPolicy, arg.FuelPolicy, arg.OrgID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }
 
 const updateOrganisation = `-- name: UpdateOrganisation :one

@@ -40,3 +40,6 @@
    4. Speed
    5. Parent
 6. [x] Get /orgs
+
+QUERIES:
+1. Update
